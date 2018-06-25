@@ -23,7 +23,7 @@ public abstract class LinkWorker implements Callable<ArrayList<String>>{
 	protected RandomGenerator gen;
 	protected TerminationLimit termination;
 	protected MessagePanel messenger;
-	
+
 	public LinkWorker(Query query, String site, ArrayList<String> proxies, RandomGenerator gen, TerminationLimit termination, MessagePanel messenger) {
 		this.query = query;
 		this.site = site;

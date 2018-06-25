@@ -3,13 +3,9 @@
  */
 package tests;
 
-import java.util.HashSet;
-
-import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
-import managers.ProxyManager;
 import models.WebBrowser;
 
 /**
