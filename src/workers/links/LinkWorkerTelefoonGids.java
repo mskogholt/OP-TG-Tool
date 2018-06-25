@@ -36,65 +36,67 @@ public class LinkWorkerTelefoonGids extends LinkWorker{
 		String what = query.getWhat();
 		String where = query.getWhere();
 
+		ArrayList<String> list = new ArrayList<String>();
+
 		messenger.setMessage("Initializing...");
 		int max = getMax(query, proxies);
+		if(max > 0){
 
-		if(termination.getType().equals("Page Limit")) {
-			max = Math.min(max, termination.getLimit());
-		}
-		messenger.setMessage("Collecting " + max + " telefoongids pages of results");
-		for(int i=1; i<=max; i++){
-			if(where.equals("")){
-				String link = "http://www.detelefoongids.nl/" + what + "/4-1/?page=" + i;
-				urls.add(link);
-			}else{
-				String link = "http://www.detelefoongids.nl/" + what + "/" + where + "/3-1/?page=" + i;
-				urls.add(link);	
+			if(termination.getType().equals("Page Limit")) {
+				max = Math.min(max, termination.getLimit());
 			}
-		}
-
-		HashSet<String> links = new HashSet<String>();
-		HashMap<String, Integer> tries = new HashMap<String, Integer>();
-		for(int i=0; i<urls.size(); i++) {
-
-			String link = urls.get(i);
-			if(tries.containsKey(link)) {
-				int tried = tries.get(link);
-				tried++;
-				tries.put(link, tried);
-			} else {
-				tries.put(link, 1);
-			}
-			if(tries.get(link)>=Manager.maxAttempts) {
-				continue;
-			}
-			try {
-				HashSet<String> tempLinks = getLinks(link, gen, proxies);
-
-				messenger.setMessage("Got " + (i+1) + " page");
-				for(String tempLink : tempLinks) {
-					if(tempLink.contains("collapsing") && tempLink.contains("encodedRefinement") && tempLink.contains("collapseid")){
-						int counter = 0;
-						while(counter<Manager.maxAttempts) {
-							try {
-								links.addAll(getLinks(tempLink, gen, proxies));
-								break;
-							} catch (Exception e) {}
-							counter++;
-						}
-					} else {
-						links.add(tempLink);
-					}
+			messenger.setMessage("Collecting " + max + " telefoongids pages of results");
+			for(int i=1; i<=max; i++){
+				if(where.equals("")){
+					String link = "http://www.detelefoongids.nl/" + what + "/4-1/?page=" + i;
+					urls.add(link);
+				}else{
+					String link = "http://www.detelefoongids.nl/" + what + "/" + where + "/3-1/?page=" + i;
+					urls.add(link);	
 				}
-			} catch(Exception e) {
-				urls.add(link);
 			}
-			double prog = ((double) (i+1))/((double) urls.size());
-			prog = prog*100;
-		}
 
-		ArrayList<String> list = new ArrayList<String>();
-		list.addAll(links);
+			HashSet<String> links = new HashSet<String>();
+			HashMap<String, Integer> tries = new HashMap<String, Integer>();
+			for(int i=0; i<urls.size(); i++) {
+
+				String link = urls.get(i);
+				if(tries.containsKey(link)) {
+					int tried = tries.get(link);
+					tried++;
+					tries.put(link, tried);
+				} else {
+					tries.put(link, 1);
+				}
+				if(tries.get(link)>=Manager.maxAttempts) {
+					continue;
+				}
+				try {
+					HashSet<String> tempLinks = getLinks(link, gen, proxies);
+
+					messenger.setMessage("Got " + (i+1) + " page");
+					for(String tempLink : tempLinks) {
+						if(tempLink.contains("collapsing") && tempLink.contains("encodedRefinement") && tempLink.contains("collapseid")){
+							int counter = 0;
+							while(counter<Manager.maxAttempts) {
+								try {
+									links.addAll(getLinks(tempLink, gen, proxies));
+									break;
+								} catch (Exception e) {}
+								counter++;
+							}
+						} else {
+							links.add(tempLink);
+						}
+					}
+				} catch(Exception e) {
+					urls.add(link);
+				}
+				double prog = ((double) (i+1))/((double) urls.size());
+				prog = prog*100;
+			}
+			list.addAll(links);
+		}
 		return list;
 	}
 
@@ -185,7 +187,7 @@ public class LinkWorkerTelefoonGids extends LinkWorker{
 		String what = query.getWhat();
 		String where = query.getWhere();
 		int max = -1;
-
+		int attemptCounter = 0;
 		String link = "";
 		if(where.equals("")){
 			link = "http://www.detelefoongids.nl/" + what + "/4-1/?page=" + 1;
@@ -227,6 +229,10 @@ public class LinkWorkerTelefoonGids extends LinkWorker{
 					Thread.sleep(1000);
 				} catch (InterruptedException e1) {
 					e1.printStackTrace();
+				}
+				attemptCounter++;
+				if(attemptCounter > 100){
+					break;
 				}
 			} finally {
 				web.close();
