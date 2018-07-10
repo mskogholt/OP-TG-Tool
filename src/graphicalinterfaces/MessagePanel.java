@@ -14,8 +14,9 @@ import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.JLabel;
 import net.miginfocom.swing.MigLayout;
 import javax.swing.JButton;
-import java.awt.Component;
-import javax.swing.Box;
+import java.awt.Font;
+import java.awt.GraphicsEnvironment;
+
 import javax.swing.JProgressBar;
 
 public class MessagePanel extends JPanel {
@@ -28,7 +29,7 @@ public class MessagePanel extends JPanel {
 	private JLabel status;
 	private JProgressBar progressBar;
 	private boolean cancelled = false;
-	
+
 	public static void main(String[] args) {
 
 		UIManager.put("control", new Color(255,255,255));
@@ -43,11 +44,19 @@ public class MessagePanel extends JPanel {
 			}
 		} catch (Exception e) {}
 
+		String fonts[] = 
+				GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+
+		for ( int i = 0; i < fonts.length; i++ )
+		{
+			System.out.println(fonts[i]);
+		}
+
 		ImageIcon imageIcon = new ImageIcon("./Logo.png"); // load the image to a imageIcon
 		Image image = imageIcon.getImage(); // transform it 
 		Image logo = image.getScaledInstance(1000, 1000,  java.awt.Image.SCALE_SMOOTH); // scale it the smooth way  
 
-		JFrame frame = new JFrame("Test");
+		JFrame frame = new JFrame("Office Palace Lead Generator");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setIconImage(logo);
 
@@ -58,7 +67,8 @@ public class MessagePanel extends JPanel {
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 
-		for(int i=0; i<10; i++) {
+		int max = 10;
+		for(int i=0; i<max; i++) {
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
@@ -67,6 +77,16 @@ public class MessagePanel extends JPanel {
 
 			int prog = i+1;
 			panel.setMessage("Done with query " + prog + " out of 10");
+			panel.setProgress(prog*10);
+			if(prog % 2 == 0){
+				panel.setMessage("Attempting to parse a certain proxy for link collection");
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+			panel.setStatus("Collecting Queries: ");
 		}
 	}
 
@@ -74,29 +94,25 @@ public class MessagePanel extends JPanel {
 	 * Create the panel.
 	 */
 	public MessagePanel() {
-		setLayout(new MigLayout("", "[][][]", "[][][][][][][]"));
+		setLayout(new MigLayout("fillx", "[grow]", "[][][][grow][]"));
 
-		int strutSize = 60;
-		Component verticalStrut = Box.createVerticalStrut(strutSize);
-		add(verticalStrut, "cell 1 0,aligny top");
+		Font font = new Font("Sylfaen",Font.PLAIN, 18);
 
-		status = new JLabel("");
-		add(status, "cell 1 1");
+		status = new JLabel("Initializing.....");
+		status.setFont(font);
+		add(status, "cell 0 0");
 
-		Component horizontalStrut = Box.createHorizontalStrut(strutSize);
-		add(horizontalStrut, "cell 0 2,alignx left");
-
-		message = new JLabel("");
-		add(message, "cell 1 2,growx,alignx left,aligny top");
+		message = new JLabel("1 2 3 ...");
+		message.setFont(font);
+		add(message, "cell 0 2,alignx left, width 400::");
 
 		progressBar = new JProgressBar();
 		progressBar.setIndeterminate(true);
-		add(progressBar, "cell 1 3");
-
-		Component verticalStrut_2 = Box.createVerticalStrut(20);
-		add(verticalStrut_2, "cell 1 4");
+		progressBar.setFont(font);
+		add(progressBar, "cell 0 1");
 
 		JButton cancel = new JButton("Cancel...");
+		cancel.setFont(font);
 		cancel.addActionListener(new ActionListener() {
 
 			@Override
@@ -105,26 +121,22 @@ public class MessagePanel extends JPanel {
 			}
 
 		});
-		add(cancel, "cell 1 5,growx");
-
-		Component horizontalStrut_1 = Box.createHorizontalStrut(strutSize);
-		add(horizontalStrut_1, "cell 2 5,alignx right");
-
-		Component verticalStrut_1 = Box.createVerticalStrut(strutSize);
-		add(verticalStrut_1, "cell 1 6,aligny bottom");
-
+		add(cancel, "cell 0 4,alignx right");
 	}
 
 	public boolean isCancelled() {
 		return cancelled;
 	}
-	
+
 	public void setProgress(int prog) {
 		synchronized(progressBar) {
 			if(progressBar.isIndeterminate()) {
 				progressBar.setIndeterminate(false);
 				progressBar.setMaximum(100);
 				progressBar.setStringPainted(true);
+				try {
+					((Window) this.getTopLevelAncestor()).pack();
+				} catch (Exception e) {}
 			}
 			if(prog>=0 && prog<=100) {
 				progressBar.setValue(prog);
@@ -135,18 +147,15 @@ public class MessagePanel extends JPanel {
 	public void setStatus(String message) {
 		synchronized(status) {
 			this.status.setText(message);
-			try {
-				((Window) this.getTopLevelAncestor()).pack();
-			} catch (Exception e) {}
 		}
 	}
 
 	public void setMessage(String message) {
 		synchronized(message) {
 			this.message.setText(message);
-			try {
-				((Window) this.getTopLevelAncestor()).pack();
-			} catch (Exception e) {}
+			//			try {
+			//				((Window) this.getTopLevelAncestor()).pack();
+			//			} catch (Exception e) {}
 		}
 	}
 }
