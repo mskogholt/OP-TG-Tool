@@ -37,11 +37,11 @@ public class Manager implements Callable<Boolean>{
 	private MessagePanel messenger;
 	private ArrayList<String> proxies;
 	private ArrayList<Query> queries;
-	public static final int maxAttempts = 10;
-	private int threads = 4;
+	public static final int maxAttempts = 25;
+	private int threads = 1;
 	private String id;
 	private BufferedWriter writer;
-	
+
 	/**
 	 * @param input
 	 * @param messenger
@@ -150,7 +150,7 @@ public class Manager implements Callable<Boolean>{
 			tasks.clear();
 			tasks.addAll(left);
 			left.clear();
-			
+
 			long duration = System.currentTimeMillis()-start;
 			double mins = duration/1000;
 			mins = mins/60;
@@ -212,7 +212,7 @@ public class Manager implements Callable<Boolean>{
 						counter++;
 
 					} catch (Exception e) {
-						
+
 						if(task.getAttempts()<maxAttempts) {
 							LinkWorker worker = LinkWorkerFactory.getLinkWorker(task.getQuery(), site, proxies, gen, termination, messenger, false);
 							Future<ArrayList<String>> future = executor.submit(worker);
@@ -221,7 +221,7 @@ public class Manager implements Callable<Boolean>{
 							newTask.setAttempts((task.getAttempts()+1));
 							left.add(newTask);
 						}
-						
+
 						size++;
 						e.printStackTrace();
 					}
@@ -252,7 +252,7 @@ public class Manager implements Callable<Boolean>{
 		return listLinks;
 	}
 
-	private ArrayList<String> fillProxies() {
+	public static ArrayList<String> fillProxies() {
 		ArrayList<String> links = new ArrayList<String>();
 		for(int l=0; l<10; l++){
 			links.add("http://fishproxy.com/"); // One
@@ -269,18 +269,18 @@ public class Manager implements Callable<Boolean>{
 		for(int i=0; i<10; i++){
 			links.add("https://www.filterbypass.me/"); // 1
 		}
-		for(int i=0; i<10; i++){
-			links.add("http://www.unblockmyweb.com/"); // 1
-		}
+		//		for(int i=0; i<10; i++){
+		//			links.add("http://www.unblockmyweb.com/"); // 1
+		//		}
 		for(int i=0; i<25; i++){
 			links.add("https://www.proxfree.com/"); // 1
 		}
 		for(int i=0; i<10; i++){
 			links.add("http://newproxy.ninja/"); // 1
 		}
-		for(int i=0; i<10; i++){
-			links.add("http://www.theproxy.link/"); // 1
-		}
+		//		for(int i=0; i<10; i++){
+		//			links.add("http://www.theproxy.link/"); // 1
+		//		}
 		for(int i=0; i<10; i++){
 			links.add("http://www.hollandproxy.eu/"); // 1
 		}
@@ -290,9 +290,9 @@ public class Manager implements Callable<Boolean>{
 		for(int i=0; i<10; i++){
 			links.add("http://applepieproxy.xyz"); // 1
 		}
-		for(int i=0; i<10; i++){
-			links.add("http://xtcsoul.net/"); // 1
-		}
+		//		for(int i=0; i<10; i++){
+		//			links.add("http://xtcsoul.net/"); // 1
+		//		}
 		for(int i=0; i<10; i++){
 			links.add("http://www.bramka-proxy.pl/"); // 1
 		}

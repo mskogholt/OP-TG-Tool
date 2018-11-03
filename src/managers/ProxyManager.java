@@ -19,7 +19,6 @@ public class ProxyManager {
 	
 	public static DomElement getProxy(WebBrowser web, String proxyLink, String link) throws Exception {
 		DomElement goButton = null;
-		
 		if(proxyLink.contains("webanonymizer")){
 			// Get the first page
 			HtmlPage page = web.getPage("http://webanonymizer.org/");
@@ -87,20 +86,16 @@ public class ProxyManager {
 			HtmlInput input = page.getHtmlElementById("input");
 			input.setValueAttribute(link);
 
-			goButton = page.getFirstByXPath(input.getParentNode().getCanonicalXPath()+"/input[2]");
-
-			page = goButton.click();
-
 			HtmlInput checkBox = page.getHtmlElementById("encodeURL");
 			checkBox.setChecked(false);
 
-			goButton = page.getFirstByXPath("/html/body/center/div/form/input[2]");
+			goButton = page.getFirstByXPath(input.getParentNode().getCanonicalXPath()+"/input[2]");
 		}
-		if(link.contains("proxfree")){
+		if(proxyLink.contains("proxfree")){
 			// Proxfree
 			// Get the first page
 			HtmlPage page = web.getPage("https://www.proxfree.com/");
-								
+			
 			HtmlSelect select = page.getElementByName("pfipDropdown");
 			int max = select.getOptionSize();
 			double index = Math.random()*((double) max);
@@ -110,7 +105,9 @@ public class ProxyManager {
 			HtmlInput input = page.getElementByName("get");
 			input.setValueAttribute(link);
 			
-			goButton = page.getFirstByXPath("/html/body/div[2]/div/form/input[2]");
+			//*[@id="pfmidPannel"]/div/form/input[1]
+			//*[@id="pfmidPannel"]/div/form/input[2]
+			goButton = page.getFirstByXPath(input.getParentNode().getCanonicalXPath()+"/input[2]");
 		}
 		if(proxyLink.contains("newproxy.ninja")){
 			HtmlPage page = web.getPage(proxyLink);
@@ -118,11 +115,7 @@ public class ProxyManager {
 			HtmlInput input = page.getHtmlElementById("input");
 			input.setValueAttribute(link);
 
-			HtmlInput checkBox = page.getHtmlElementById("encodeURL");
-			checkBox.setChecked(false);
-
 			goButton = page.getFirstByXPath(input.getParentNode().getCanonicalXPath()+"/input[2]");
-					
 		}
 		if(proxyLink.contains("theproxy.link/")){
 			HtmlPage page = web.getPage(proxyLink);
@@ -179,8 +172,8 @@ public class ProxyManager {
 			HtmlInput input = page.getHtmlElementById("input");
 			input.setValueAttribute(link);
 
-			HtmlInput checkBox = page.getHtmlElementById("encodeURL");
-			checkBox.setChecked(false);
+//			HtmlInput checkBox = page.getHtmlElementById("encodeURL");
+//			checkBox.setChecked(false);
 
 			goButton = page.getFirstByXPath(input.getParentNode().getCanonicalXPath()+"/input[2]");
 					

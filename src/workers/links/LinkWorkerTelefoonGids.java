@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import com.gargoylesoftware.htmlunit.html.DomElement;
-import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 import containers.Query;
@@ -41,7 +40,6 @@ public class LinkWorkerTelefoonGids extends LinkWorker{
 		messenger.setMessage("Initializing...");
 		int max = getMax(query, proxies);
 		if(max > 0){
-
 			if(termination.getType().equals("Page Limit")) {
 				max = Math.min(max, termination.getLimit());
 			}
@@ -71,24 +69,10 @@ public class LinkWorkerTelefoonGids extends LinkWorker{
 				if(tries.get(link)>=Manager.maxAttempts) {
 					continue;
 				}
+				
 				try {
-					HashSet<String> tempLinks = getLinks(link, gen, proxies);
-
+					links.addAll(getLinks(link, gen, proxies));
 					messenger.setMessage("Got " + (i+1) + " page");
-					for(String tempLink : tempLinks) {
-						if(tempLink.contains("collapsing") && tempLink.contains("encodedRefinement") && tempLink.contains("collapseid")){
-							int counter = 0;
-							while(counter<Manager.maxAttempts) {
-								try {
-									links.addAll(getLinks(tempLink, gen, proxies));
-									break;
-								} catch (Exception e) {}
-								counter++;
-							}
-						} else {
-							links.add(tempLink);
-						}
-					}
 				} catch(Exception e) {
 					urls.add(link);
 				}
@@ -108,67 +92,27 @@ public class LinkWorkerTelefoonGids extends LinkWorker{
 
 		try {
 			String proxyLink = proxies.get(selectLink);
-			while(proxyLink.contains("proxfree")) {
-				selectLink = gen.getIndex();
-				proxyLink = proxies.get(selectLink);
-			}
-
-			messenger.setMessage("Getting Proxy....");
 
 			DomElement goButton = ProxyManager.getProxy(web, proxyLink, link);
-
-			messenger.setMessage("Got Proxy Connection");
-
 			HtmlPage page = goButton.click();
 
+			if(page.asText().contains("The site you are attempting to browse is on a secure connection. This proxy is not on a secure connection.")) {
+				page = ProxyManager.ignoreWarning(page, web);
+			}
 			int succesfull = 0;
-			for(HtmlAnchor anchor : page.getAnchors()) {
-				String href = anchor.getHrefAttribute();
-				if(anchor.getParentNode().asXml().contains("h2 id=\"")
-						|| (href.contains("collapsing") && href.contains("encodedRefinement") && href.contains("collapseid"))) {
-					href = anchor.getHrefAttribute();
-					href = href.replace("/browse.php?u=", "");
-					href = href.replace("/fish.php?u=", "");
+			System.out.println(page.asText());
 
-					href = href.replace("%2F", "/");
-					href = href.replace("%3F", "?");
-					href = href.replace("%3D", "=");
-					href = href.replace("%26", "&");
-					href = href.replace("%25", "%");
-					href = href.replace("%3A", ":");
-
-					href = href.replace("&b=28", "");
-					href = href.replace("&b=4", "");
-					href = href.replace("&b=12", "");
-
-					// Webanon
-					href = href.replace("s-s.", "");
-					href = href.replace(".prx.webanonymizer.org", "");
-
-					// filterbypass
-					href = href.replace("/s.php?k=", "");
-					href = href.replace("&b=12", "");
-
-					// fish & xitenow
-					href = href.replace("/browse.php?u=", "");
-					href = href.replace("/fish.php?u=", "");
-
-					if(anchor.getParentNode().asXml().contains("h2 id=\"")) {
-						String xml = anchor.getParentNode().asXml();
-						xml = xml.replace("<h2 id=\"", "");
-						String id = xml.substring(0, xml.indexOf("\""));
-						if(anchor.getHrefAttribute().contains(id)) {							
-							links.add(href);
-							succesfull++;
-						}
-					}
-					if(href.contains("collapsing") && href.contains("encodedRefinement") && href.contains("collapseid")){
-						links.add(href);
-						succesfull++;
-					}
+			String text = page.asText();
+			String[] pageSplit = text.split("\\r?\\n");
+			for(String split : pageSplit) {
+				if(split.startsWith("https://www.detelefoongids.nl/")
+						&& split.endsWith("Toon nummer")){
+					String href = split.replace("Toon nummer", "");
+					links.add(href);
+					succesfull++;
 				}
 			}
-
+			
 			if(succesfull<=0) {
 				throw new Exception("No Results!");
 			}
@@ -202,11 +146,6 @@ public class LinkWorkerTelefoonGids extends LinkWorker{
 
 				int index = Math.min(proxies.size()-1, (int) ( Math.random()*((double) proxies.size())));
 				String proxyLink = proxies.get(index);
-
-				while(proxyLink.contains("proxfree")) {
-					index =  Math.min(proxies.size()-1, (int) ( Math.random()*((double) proxies.size())));
-					proxyLink = proxies.get(index);
-				}
 				messenger.setMessage("Attempting to parse...");
 
 				// Random selection of anonymizer

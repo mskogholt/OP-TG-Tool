@@ -50,14 +50,9 @@ public class WorkerTelefoonGids extends Worker{
 		try{
 
 			String proxyLink = proxies.get(index);
-			while(proxyLink.contains("proxfree")) {
-				index = gen.getIndex();
-				proxyLink = proxies.get(index);
-			}
-
 			DomElement goButton = ProxyManager.getProxy(web, proxyLink, link);
 
-			HtmlPage resultPage = goButton.click();
+			HtmlPage page = goButton.click();
 
 			String id = null;
 			Matcher firstMatch = pattern.matcher(link);
@@ -68,33 +63,44 @@ public class WorkerTelefoonGids extends Worker{
 					id = temp.substring(idMatch.start()+1, idMatch.end()-1);
 				}
 			}
+			try{
+				HtmlElement title = page.getHtmlElementById(id);
+				result.setCompany(title.asText());
 
-			HtmlElement title = resultPage.getHtmlElementById(id);
-			result.setCompany(title.asText());
+				HtmlElement adres = page.getFirstByXPath(title.getParentNode().getCanonicalXPath()+"/ul[1]/div[1]");
 
-			HtmlElement list = resultPage.getHtmlElementById("li_"+id);
+				String adresText = adres.asText();	
+				Adress adress = new Adress();
+				String[] adressParts = adresText.split(",");		
+				try {
+					adress.setStreet(adressParts[0]);
+				} catch (Exception e) {System.err.println(e);}
+				try {
+					adress.setPostal(adressParts[1]);
+				} catch (Exception e) {System.err.println(e);}
+				try {
+					adress.setCity(adressParts[2]);
+				} catch (Exception e) {System.err.println(e);}
 
-			HtmlElement adressElement = resultPage.getFirstByXPath(list.getCanonicalXPath()+"/div[1]/ul/li[1]/p");
-			//*[@id="content"]/div/div[2]/div/div[3]/div/section/div/div[1]/h1
-			//*[@id="content"]/div/div[2]/div/div[3]/div/section/div/div[1]/ul/li/p
+				result.addAdress(adress);
+			} catch (Exception e){
+				String name = link;
+				name = name.replace("https://www.detelefoongids.nl/", "");
+				result.setCompany(name.substring(0, name.indexOf("/")));
+			}
 
-			Adress adress = new Adress();
-			String textual = adressElement.asText();
-			String[] adressParts = textual.split(",");		
-			try {
-				adress.setStreet(adressParts[0]);
-			} catch (Exception e) {System.err.println(e);}
-			try {
-				adress.setPostal(adressParts[1]);
-			} catch (Exception e) {System.err.println(e);}
-			try {
-				adress.setCity(adressParts[2]);
-			} catch (Exception e) {System.err.println(e);}
-
-			result.addAdress(adress);
-
-			HtmlElement phoneNumber = resultPage.getFirstByXPath(list.getCanonicalXPath()+"/div[3]/div/div[2]/div/div/ul/li[1]/div/span");
-			result.addNumber(phoneNumber.asText());
+			String pageText = page.asText();
+			String[] pageSplit = pageText.split("\\r?\\n");
+			for(String split : pageSplit) {
+				if(split.endsWith("Toon nummer")){
+					split = split.replace("Toon nummer", "");
+					result.addNumber(split);
+					break;
+				}
+			}
+			if(result.getNumbers().size()<1){
+				throw new Exception("No Number!" + proxyLink);
+			}
 			gen.addIndex(index);
 		} catch (Exception e) {
 			gen.removeIndex(index);
